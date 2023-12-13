@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Validated
@@ -30,7 +31,10 @@ public class NoteControllerV1 {
     @Autowired private NoteMapper noteMapper;
 
     @RequestMapping(value = "/list", method = {RequestMethod.GET})
-    public ModelAndView noteList() {
+    public ModelAndView noteList(@CookieValue(value = "userId", required = false) Long userId) {
+        if (Objects.isNull(userId)) {
+            return new ModelAndView("notes/index");
+        }
         ModelAndView result = new ModelAndView("notes/allNotes");
         result.addObject("notes", noteMapper.toNoteResponses(noteService.listAll()));
         return result;
@@ -46,7 +50,7 @@ public class NoteControllerV1 {
         dto.setContent(content);
         dto.setUserId(userId);
         noteService.add(dto);
-        return noteList();
+        return noteList(userId);
     }
 
     @RequestMapping(value = "/update", method = {RequestMethod.POST})
@@ -54,21 +58,23 @@ public class NoteControllerV1 {
             @CookieValue(value = "userId") Long userId,
             @NotNull @RequestParam(value="id") String id,
             @Size(min = 1, max = 250) @RequestParam(value="title") String title,
-            @NotEmpty @RequestParam(value="content") String content) throws NoteNotFoundException {
+            @NotEmpty @RequestParam(value="content") String content)
+                throws NoteNotFoundException {
         NoteDto dto = new NoteDto();
         dto.setId(UUID.fromString(id));
         dto.setTitle(title);
         dto.setContent(content);
         dto.setUserId(userId);
         noteService.update(dto);
-        return noteList();
+        return noteList(userId);
     }
 
     @DeleteMapping("/delete")
     @RequestMapping(value = "/delete", method = {RequestMethod.POST})
     public ModelAndView deleteNoteById(@CookieValue(value = "userId") Long userId,
-                                       @Valid @NotNull @RequestParam(value="id") String id) throws NoteNotFoundException {
+                                       @Valid @NotNull @RequestParam(value="id") String id)
+            throws NoteNotFoundException {
         noteService.deleteById(UUID.fromString(id), userId);
-        return noteList();
+        return noteList(userId);
     }
 }

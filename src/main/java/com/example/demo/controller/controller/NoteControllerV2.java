@@ -109,6 +109,15 @@ public class NoteControllerV2 {
                 .body(noteMapper.toNoteResponse(noteDto));
     }
 
+    @GetMapping("/title")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<NoteResponse> getNoteByTitle(@RequestParam("title") String title) throws NoteNotFoundException {
+        NoteDto noteDto = noteService.getByTitle(title);
+        return ResponseEntity
+                .status(HttpStatus.ACCEPTED)
+                .body(noteMapper.toNoteResponse(noteDto));
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteNoteById(@CookieValue(value = "userId") Long userId,

@@ -2,7 +2,6 @@ package com.example.demo.service.service.impl;
 
 import com.example.demo.data.entity.NoteEntity;
 import com.example.demo.data.entity.UserEntity;
-import com.example.demo.data.projection.NoteWithUserNameProj;
 import com.example.demo.data.repository.NoteRepository;
 import com.example.demo.service.dto.NoteDto;
 import com.example.demo.service.dto.NoteWithUsernameDto;
@@ -11,6 +10,8 @@ import com.example.demo.service.mapper.NoteMapper;
 import com.example.demo.service.service.NoteService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +41,8 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public List<NoteWithUsernameDto> listAllUserNotes1(Long userId) {
-        return noteMapper.toNoteWithUsernameDtoList1(noteRepository.findWithUser(userId));
+        List<NoteEntity> list = noteRepository.findWithUser(userId);
+        return noteMapper.toNoteWithUsernameDtoList1(list);
     }
 
     @Override
@@ -94,5 +96,12 @@ public class NoteServiceImpl implements NoteService {
         } else {
             throw new NoteNotFoundException(id);
         }
+    }
+
+    @Override
+    public NoteDto getByTitle(String title) throws NoteNotFoundException {
+        NoteEntity note = noteRepository.findByTitle(title)
+                .orElseThrow(NoteNotFoundException::new);
+        return noteMapper.toNoteDto(note);
     }
 }
